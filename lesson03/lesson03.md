@@ -58,7 +58,7 @@ func main(){
 例如我们定义一个名为`demo`的包，在其中定义了若干标识符。在另外一个包中并不是所有的标识符都能通过`demo.`前缀访问到，因为只有那些首字母是大写的标识符才是对外可见的。
 
 ```go
-var	Name  string // 可在包外访问的方法
+var	Name  string // 可在包外访问的字段
 var	class string // 仅限包内访问的字段
 ```
 
@@ -192,7 +192,7 @@ func Update(a int){
 func main() {
 	a := 0 
 	Update(a)
-	fmt.Print(a)
+	fmt.Print(a) //0
 }
 ```
 
@@ -205,7 +205,7 @@ func Update(a *int) {
 func main() {
 	a := 0
 	Update(&a) //传指针
-	fmt.Print(a)
+	fmt.Print(a) //1
 }
 
 ```
@@ -332,7 +332,9 @@ type MyInt int
 类型别名规定：本质上是同一个类型。就像一个孩子小时候有小名，这和他的名字都指向同一个人。
 
 ```go
-type 类型的别名 = 类型名
+type MyInt = int
+
+// var a int
 ```
 
 ### 类型定义和类型别名的区别
@@ -1040,6 +1042,98 @@ type eface struct {
 # 手搓time
 
 看时间吧，时间还够就带大家手搓一个用到本课大部分内容的demo
+
+```go
+package main
+
+import (
+	"fmt"
+	"strings"
+)
+
+type Alice struct {
+	Name  string
+	Age   int
+	Lover string
+}
+
+type Bob struct {
+	Name  string
+	Age   int
+	Intro string
+}
+
+type Carol struct {
+	Name string
+}
+
+type AliceConf struct {
+	Name  string
+	Age   int
+	Lover string
+}
+
+type BobConf struct {
+	Name string
+	Age  int
+	Tags []string
+}
+
+type CarolConf struct {
+	Name string
+}
+
+type DefaultPtr[T usedType, C usedTypeConf] interface {
+	*T
+	Init(C)
+}
+
+type usedType interface {
+	Alice | Bob | Carol
+}
+
+type usedTypeConf interface {
+	*AliceConf | *BobConf | *CarolConf
+}
+
+func (a *Alice) Init(cfg *AliceConf) {
+	a.Name = cfg.Name
+	a.Age = cfg.Age
+	a.Lover = cfg.Lover
+}
+
+func (b *Bob) Init(cfg *BobConf) {
+	b.Name = cfg.Name
+	b.Age = cfg.Age
+	b.Intro = fmt.Sprintf("I like to %v", strings.Join(cfg.Tags, ","))
+}
+
+func (c *Carol) Init(cfg *CarolConf) {
+	c.Name = cfg.Name
+}
+
+func Default[T usedType, C usedTypeConf, ptr DefaultPtr[T, C]](cfg C) T {
+	var t T
+	ptr.Init(&t, cfg) // (&t).Init(cfg)
+	return t
+}
+
+func main() {
+	fmt.Println(Default[Alice, *AliceConf](&AliceConf{
+		Name:  "Alice",
+		Age:   20,
+		Lover: "Bob",
+	}))
+	fmt.Println(Default[Bob, *BobConf](&BobConf{
+		Name: "Bob",
+		Age:  18,
+		Tags: []string{"Sport", "Coding"},
+	}))
+}
+
+```
+
+
 
 # 作业
 
