@@ -783,7 +783,7 @@ func main() {
 
 ### 二、组合代替继承
 
-> **定义**：Go 没有类继承，用**结构体内嵌（embedding）**实现复用与“方法提升”。
+> **定义**：Go 没有类继承，用**结构体内嵌**实现复用与“方法提升”。
 
 ```go
 type Info struct {
@@ -857,7 +857,7 @@ func main() {
 
 # 泛型
 
-> Go 的泛型在设计上就是**“够用就好”**——它不是要变成 C++ Template 或 Rust Trait 那种强泛化系统，而是希望你在有些时候能做得更安全、更整洁。
+> Go 的泛型在设计上就是**够用就好**——它不是要变成 C++ Template 或 Rust Trait 那种强泛化系统，而是希望你在有些时候能做得更安全、更整洁。
 >
 > 泛型对于 Go ：**是“语法糖级别的工具”，不是“类型系统革命”**
 
@@ -925,11 +925,11 @@ type myType interface{
 
 ```go
 func Max[T myType](a,b T)T{ // myType 替代了刚刚的 int | float32,支持的类型就是我们在myType中写的类型
-		if a > b{
-				return a
-		}else{
-				return b
-		}
+	if a > b{
+		return a
+	}else{
+		return b
+	}
 }
 ```
 
