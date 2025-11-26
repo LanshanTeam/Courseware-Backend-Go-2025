@@ -1092,6 +1092,7 @@ func main() {
 ├── dao
 ├── go.mod
 ├── model
+├── middleware
 └── utils
 ```
 
@@ -1099,6 +1100,7 @@ func main() {
 - api：接口层，在里面是详细的逻辑实现以及路由。
 - dao：全名为 data access object，进行数据库操作。
 - model：模型层，主要放数据库实例的结构体。
+- middleware：存放中间件的位置
 - utils：一些常用的工具函数，封装在这里减少代码的重复使用。
 - go.mod：依赖管理
 
@@ -1112,8 +1114,8 @@ func main() {
 package model
 
 type User struct {
-	Username string
-	Password string
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 ```
 
@@ -1123,7 +1125,7 @@ model包一般存放需要用的结构体
 
 注册：验证用户是否注册->已注册则退出，未注册则注册
 
-登录：验证用户是否存在->验证密码是否正确->登录
+登录：验证用户是否存在以及密码是否正确->登录
 
 在这过程中我们会发现存在与数据库的交互，例如写入新注册用户，查找用户和密码等，将与数据库有关的抽离出来，在dao层实现
 
@@ -1131,72 +1133,66 @@ model包一般存放需要用的结构体
 package api
 
 import (
-	"gin-demo/dao"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
+
+	"lesson06/dao"
+	"lesson06/model"
+	"lesson06/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
-func register(c *gin.Context) {
-	// 传入用户名和密码
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	// 验证用户名是否重复
-	flag := dao.SelectUser(username)
-	// 重复则退出
-	if flag {
-		// 以 JSON 格式返回信息
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  500,
+func Register(c *gin.Context) {
+	var req model.User
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "bad request",
+		})
+	}
+	// 如果用户存在，这里这种是用户名可以一致的，即只要密码不一致就视为不同用户
+	if dao.FindUser(req.Username, req.Password) {
+		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "user already exists",
 		})
 		return
 	}
-
-	dao.AddUser(username, password)
-	// 以 JSON 格式返回信息
+	dao.AddUser(req.Username, req.Password)
 	c.JSON(http.StatusOK, gin.H{
-		"status":  200,
-		"message": "add user successful",
+		"message": "register success",
 	})
 }
 
-func login(c *gin.Context) {
-	// 传入用户名和密码
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	// 验证用户名是否存在
-	flag := dao.SelectUser(username)
-	// 不存在则退出
-	if !flag {
-		// 以 JSON 格式返回信息
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  500,
-			"message": "user doesn't exists",
+func Login(c *gin.Context) {
+	var req model.User
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "bad request",
 		})
 		return
 	}
-
-	// 查找正确的密码
-	selectPassword := dao.SelectPasswordFromUsername(username)
-	// 若不正确则传出错误
-	if selectPassword != password {
-		// 以 JSON 格式返回信息
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  500,
-			"message": "wrong password",
+	// 检查用户是否存在且密码是否正确
+	if !dao.FindUser(req.Username, req.Password) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "user not found",
 		})
 		return
 	}
-	// 正确则登录成功 设置 cookie（也可以不设）
-  c.SetCookie("gin_demo_cookie", "test", 3600, "/", "localhost", false, true)
-  //返回结果
-  c.JSON(http.StatusOK, gin.H{
-  "status":  200,
-  "message": "login successful",
+	// 生成jwt token
+	token, err := utils.MakeToken(req.Username, time.Now().Add(10*time.Minute))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "internal server error",
+		})
+		return
+	}
+	// 返回token
+	c.JSON(http.StatusOK, gin.H{
+		"message": "login",
+		"token":   token,
 	})
 }
+
 ```
 
 
@@ -1205,25 +1201,21 @@ dao包内的代码负责与数据库交互，因为未学数据库固使用map�
 
 ```go
 package dao
+// 模拟数据库
+var database = map[string]string{}
 
-// 假数据库，用 map 实现
-var database = map[string]string{
-	"yxh": "123456",
-	"wx":  "654321",
-}
-
-func AddUser(username, password string) {
+func AddUser(username string, password string) {
 	database[username] = password
 }
 
-// 若没有这个用户返回 false，反之返回 true
-func SelectUser(username string) bool {
-	if database[username] == "" {
-		return false
+func FindUser(username string, password string) bool {
+	if pwd, ok := database[username]; ok {
+		if pwd == password {
+			return true
+		}
 	}
-	return true
+	return false
 }
-
 func SelectPasswordFromUsername(username string) string {
 	return database[username]
 }
@@ -1236,17 +1228,11 @@ func SelectPasswordFromUsername(username string) string {
 api包负责写路由，也就是接口
 
 ```go
-package api
-
-import "github.com/gin-gonic/gin"
-
-func InitRouter() {
+func InitRouter_gin() {
 	r := gin.Default()
-
-	r.POST("/register", register) // 注册
-	r.POST("/login", login)       // 登录
-
-	r.Run(":8088") // 跑在 8088 端口上
+	r.GET("/ping", middleware.Example1(), middleware.Example2(), Ping1)
+	r.POST("login", Login)
+	r.Run(":8080")
 }
 ```
 
@@ -1255,10 +1241,12 @@ func InitRouter() {
 ```go
 package main
 
-import "gin-demo/api"
+import (
+	"lesson06/api"
+)
 
 func main() {
-	api.InitRouter()
+	api.InitRouter_gin()
 }
 ```
 
@@ -1290,6 +1278,10 @@ func main() {
 
 tips：可以把token放在请求头，请求体，url里面，如果使用apipost，可以放到以下位置
 ![1764085830327](img/1764085830327.png)
+
+### Lv4
+
+jwt token有着过期时间，过期后需要重新登录获取token，这很麻烦，通常我们过期时间只会设置几个小时，频繁登录会导致用户体验下降，因此我们需要考虑如何优化。了解refresh token的概念以及他与jwt token的区别，尝试加一个refresh的功能，当jwt token过期后，通过refresh token获取新的jwt token。
 
 ### LvX
 
