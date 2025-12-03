@@ -68,7 +68,7 @@ docker exec -it mysql /bin/bash
 **登陆**
 
 ```go
-Mysql -u root -p
+mysql -u root -p
 ```
 
 然后输入密码即可
@@ -550,7 +550,7 @@ func transactionExample(db *gorm.DB) {
 
 *进阶要求*：
 
-1.利用上节课学习的gin框架或者hz框架，把增删改查四个任务包装为四个接口，对外提供http服务，使用api工具对任务的增删改查
+1.利用上节课学习的gin框架或者hz框架，把增删改查四个任务包装为四个接口，对外提供http服务，使用api工具对任务进行增删改查
 
 2.结合上节课学习的注册登陆，注册时把用户信息存储到数据库中（密码实现加密存储），实现持久化存储。
 
