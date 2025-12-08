@@ -13,6 +13,6 @@
 | 05   | 并发与操作系统 | 操作系统并发基础，goroutine，channel，常见并发模型，互斥锁，WaitGroup 等 | 陈越   |
 | 06   | Web 开发       | Gin 框架和中间件模型，Hertz，Web 项目结构，Restful API，计算机网络基础。 | 王家宽 |
 | 07   | MySQL          | 安装与命令行操作，SQL 语句，Go 数据库操作，GORM ORM 框架     | 郭瑞彤 |
-| 08   | 非关系型数据库 | Redis（缓存、锁），MongoDB（文档存储），典型案例（如秒杀系统） | 陈越   |
+| 08   | 非关系型数据库 | Redis（缓存、锁），MongoDB（文档存储） | 陈越   |
 | 09   | 容器           | linux基础，Docker 基础概念，镜像与容器，Dockerfile 编写，Compose 编排 | 康桥   |
 | 10   | 单体项目实战   | Zap 日志库，Viper 配置管理，Web+DB+Redis 实战，Docker 部署与复盘优化 | 贺一鸣 |
