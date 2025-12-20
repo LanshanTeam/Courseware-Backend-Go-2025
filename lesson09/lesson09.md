@@ -409,7 +409,13 @@ Linux 只有一个 `/`
 1. 启动一个容器：
 
    ```
-   docker run -it ubuntu:22.04 bash
+   docker run -d \
+     --name example-mysql \
+     -e MYSQL_ROOT_PASSWORD=123456 \
+     -p 3306:3306 \
+     mysql:8.0
+     
+   docker exec -it example-mysql /bin/sh #进入容器
    ```
 
 2. 在 **宿主机** 和 **容器内**，分别执行：
@@ -420,7 +426,9 @@ Linux 只有一个 `/`
 
 3. 回答问题：
 
-   - 容器内看到的 PID=1 是谁？
+   - Mysql容器内看到的 PID=1 是谁？
+   - 为什么Mysql容器里 **不能随便 kill PID 1**？
+     PID 1 在Linux中有什么特殊含义？（选做）
    - 宿主机是否能看到容器里的进程？
 
 ### **用 docker-compose 构建一个「最小可用系统」**
@@ -436,7 +444,6 @@ Linux 只有一个 `/`
 
 1. 使用 **自定义 bridge 网络**
 2. `db` 使用 **volume** 持久化数据
-3. `web` 可以通过 **服务名** 访问 `db`
 
 ### **Docker 容器在 Linux 里留下了什么痕迹？**
 
@@ -463,6 +470,5 @@ Linux 只有一个 `/`
 
 > Docker 是如何把一个普通进程，变成‘看起来像一台机器’的？
 
-> 为什么Mysql容器里 **不能随便 kill PID 1**？
-> PID 1 在Linux中有什么特殊含义？
+
 
