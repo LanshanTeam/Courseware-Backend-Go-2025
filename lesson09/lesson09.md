@@ -463,6 +463,6 @@ Linux 只有一个 `/`
 
 > Docker 是如何把一个普通进程，变成‘看起来像一台机器’的？
 
-> 为什么Docker容器里 **不能随便 kill PID 1**？
+> 为什么Mysql容器里 **不能随便 kill PID 1**？
 > PID 1 在Linux中有什么特殊含义？
 
