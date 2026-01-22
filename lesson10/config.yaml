@@ -1,0 +1,19 @@
+# 服务器配置
+server:
+  host: "localhost"      # 服务器主机地址
+  port: 8080             # 服务器端口号
+
+# 数据库配置
+database:
+  driver: "mysql"        # 数据库驱动
+  host: "localhost"      # 数据库主机地址
+  port: 3306             # 数据库端口号
+  username: "root"       # 数据库用户名
+  password: "password"   # 数据库密码
+  dbname: "myapp"        # 数据库名称
+
+# 应用配置
+app:
+  name: "我的应用"        # 应用名称
+  environment: "development"  # 环境：development, production, testing
+  debug: true            # 是否开启调试模式
