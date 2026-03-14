@@ -36,7 +36,7 @@
 
 ![image-20250326171050247](./images/004.png)
 
-从单体整个应用程序开始进行拆分，拆分为多个服务，并根据每个服务各自的特点拆分成更微笑的服务，最终就成就了我们的微服务。在微服务前有一个网关，通过负载均衡和nginx反向代理进入我们的网关，通过网关会找到我们相关的服务。
+从单体整个应用程序开始进行拆分，拆分为多个服务，并根据每个服务各自的特点拆分成更微小的服务，最终就成就了我们的微服务。在微服务前有一个网关，通过负载均衡和nginx反向代理进入我们的网关，通过网关会找到我们相关的服务。
 
 但是微服务也不是万能的，这种架构会增加整个项目的复杂度
 
@@ -296,7 +296,7 @@ go install github.com/cloudwego/kitex/tool/cmd/kitex@latest
 kitex -module class11 idl/common.thrift    
 kitex -module class11 idl/user.thrift    
 
-kitex -module class11 -service class11 -use kitex_gen idl/user.thrift
+kitex -module class11 -service class11 -use class11/kitex_gen ../../idl/user.thrift
 ```
 
 
@@ -321,8 +321,9 @@ import (
 
 func main() {
 	h := server.New(server.WithHostPorts("0.0.0.0:8191"))
-
-	usercli, _ := userservice.NewClient("user", client.WithHostPorts("127.0.0.1:8888"))
+	
+  // 利用stub和指定ip找到userservice
+	usercli, _ := userservice.NewClient("userservice", client.WithHostPorts("127.0.0.1:8888"))
 
 	h.Group("/")
 	h.POST("/register", func(c context.Context, ctx *app.RequestContext) {
@@ -392,11 +393,13 @@ import (
 func main() {
 	h := server.New(server.WithHostPorts("0.0.0.0:8191"))
 
+  //注册resolver，指定etcd地址
 	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"})
 	if err != nil {
 		log.Fatal(err)
 	}
 
+  //用etcd+服务名进行服务发现
 	usercli, err := userservice.NewClient(
 		"userservice",
 		client.WithResolver(r))
@@ -432,13 +435,16 @@ import (
 )
 
 func main() {
+  //服务注册，指定etcd
 	r, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2379"})
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	
+ 	// 指定运行端口
 	addr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:9090")
 
+  // 指定option里面的服务注册
 	svr := user.NewServer(new(UserServiceImpl), server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "userservice"}),
 		server.WithServiceAddr(addr),
 		server.WithRegistry(r),
