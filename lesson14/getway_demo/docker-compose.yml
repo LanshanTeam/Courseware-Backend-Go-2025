@@ -1,0 +1,96 @@
+services:
+  api-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_BINARY: bin/api
+    environment:
+      SERVICE_NAME: api
+      INSTANCE_NAME: api-1
+      PORT: "8080"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.api.rule: Host(`api.traefik.localtest.me`)
+      traefik.http.routers.api.entrypoints: web
+      traefik.http.routers.api.service: api
+      traefik.http.services.api.loadbalancer.server.port: "8080"
+
+  api-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_BINARY: bin/api
+    environment:
+      SERVICE_NAME: api
+      INSTANCE_NAME: api-2
+      PORT: "8080"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.api.rule: Host(`api.traefik.localtest.me`)
+      traefik.http.routers.api.entrypoints: web
+      traefik.http.routers.api.service: api
+      traefik.http.services.api.loadbalancer.server.port: "8080"
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_BINARY: bin/admin
+    environment:
+      SERVICE_NAME: admin
+      INSTANCE_NAME: admin-1
+      PORT: "8080"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.admin.rule: Host(`admin.traefik.localtest.me`)
+      traefik.http.routers.admin.entrypoints: web
+      traefik.http.services.admin.loadbalancer.server.port: "8080"
+
+  echo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGET_BINARY: bin/echo
+    environment:
+      SERVICE_NAME: echo
+      INSTANCE_NAME: echo-1
+      PORT: "8080"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.echo.rule: Host(`traefik.localtest.me`) && PathPrefix(`/echo`)
+      traefik.http.routers.echo.entrypoints: web
+      traefik.http.services.echo.loadbalancer.server.port: "8080"
+
+  nginx:
+    image: nginx:1.29-alpine
+    depends_on:
+      - api-1
+      - api-2
+      - admin
+      - echo
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./deployments/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  traefik:
+    image: traefik:v3.6
+    depends_on:
+      - api-1
+      - api-2
+      - admin
+      - echo
+    ports:
+      - "8092:8080"
+    volumes:
+      - ./deployments/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.dashboard.rule: Host(`dashboard.traefik.localtest.me`)
+      traefik.http.routers.dashboard.entrypoints: web
+      traefik.http.routers.dashboard.service: api@internal
