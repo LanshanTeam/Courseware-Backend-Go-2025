@@ -30,7 +30,7 @@
 
 ```yaml
  services:
- 		elasticsearch:
+    elasticsearch:
         image: elasticsearch:8.17.0
         container_name: elasticsearch
         restart: always
@@ -127,7 +127,7 @@ output {
 
 ```yaml
 services:
-		otel-collector:
+    otel-collector:
         image: otel/opentelemetry-collector-contrib:latest
         container_name: otel-collector
         command: [ "--config=/etc/otel-collector-config.yaml" ]
@@ -212,7 +212,7 @@ service:
 
 ```yml
 services:
-		prometheus:
+    prometheus:
         image: prom/prometheus:latest
         container_name: prometheus
         volumes:
