@@ -51,6 +51,7 @@ think → act → observe → think → ...
 ```bash
 go get github.com/cloudwego/eino
 go get github.com/cloudwego/eino-ext
+go get github.com/cloudwego/eino-ext/components/model/ollama
 ```
 
 ### 示例：调用 LLM + 使用模板
