@@ -23,3 +23,10 @@
 | 15 | 可观测性      | OpenTelemetry、Prometheus、Jaeger                    | 陈越  |
 | 16 | AI Agent  | rag、mcp、skills、eino 框架以及常见 agent 设计范式              | 康桥  |
 | 17 | 杂项        | CI/CD、配置中心、八股等等                                    | 陈越  |
+
+### 考核
+
+| 时间 | 名称 | 文档 |
+| -- | -- | -- |
+| 2026 寒假 | 2025 级蓝山 Go 组寒假考核 | [exam/2025级蓝山Go组寒假考核.md](exam/2025级蓝山Go组寒假考核.md) |
+| 2026 春季 | 2026 年蓝山工作室 Go 组最终考核 | [exam/2026年蓝山工作室Go组最终考核.md](exam/2026年蓝山工作室Go组最终考核.md) |
